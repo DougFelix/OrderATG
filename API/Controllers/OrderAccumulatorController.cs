@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using API.Data;
 using API.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace API.Controllers;
@@ -15,13 +18,18 @@ public class OrderAccumulatorController : ControllerBase
     const decimal Limit = 1000000.00m;
     private readonly Dictionary<string, string> _lados = new() { { "Compra", "C" }, { "Venda", "V" } };
     private readonly string[] _ativos = { "PETR4", "VALE3", "VIIA4" };
+    private readonly DataContext _context;
 
-    // private readonly ILogger<OrderAccumulatorController> _logger;
+    public OrderAccumulatorController(DataContext context)
+    {
+        _context = context;
+    }
 
-    // public OrderAccumulatorController(ILogger<OrderAccumulatorController> logger)
-    // {
-    //     _logger = logger;
-    // }
+    [HttpDelete]
+    public async void Reset()
+    {
+        await _context.Orders.ExecuteDeleteAsync();
+    }
 
     [HttpPost]
     public IActionResult Post([FromBody] Order order)
@@ -82,20 +90,22 @@ public class OrderAccumulatorController : ControllerBase
     private decimal GetExposicaoFinanceiraAtual(string ativo)
     {
         decimal exposicaoFinanceiraAtual = 0;
-        List<Order> orders = GetOrderList(ativo);
+        List<Order> orders = GetOrderList(ativo).Result;
         if (orders.Count > 0)
             orders.ForEach(order => exposicaoFinanceiraAtual += GetOrderValue(order));
 
         return exposicaoFinanceiraAtual;
     }
 
-    private List<Order> GetOrderList(string ativo)
+    private async Task<List<Order>> GetOrderList(string ativo)
     {
-        throw new NotImplementedException();
+        var orders = await _context.Orders.Where(o => o.Ativo == ativo).ToListAsync();
+        return orders;
     }
 
     private void SaveOrder(Order order)
     {
-        throw new NotImplementedException();
+        order.RecOn = DateTime.Now;
+        _context.Orders.Add(order);
     }
 }
