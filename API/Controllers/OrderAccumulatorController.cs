@@ -42,10 +42,17 @@ public class OrderAccumulatorController : ControllerBase
         return orders;
     }
 
-    [HttpGet("{ativo}")]
-    public ActionResult<decimal> GetExposicaoFinanceira([FromRoute] string ativo)
+    [HttpGet("expofinanceira")]
+    public async Task<ActionResult<Dictionary<string, decimal>>> GetExposicaoFinanceira()
     {
-        return Ok(GetExposicaoFinanceiraAtual(ativo));
+        var exposicaoFinanceira = new Dictionary<string, decimal> { { "PETR4", 0m }, { "VALE3", 0m }, { "VIIA4", 0m } };
+        var orders = await _context.Orders.ToListAsync();
+
+        foreach (var order in orders)
+            if (exposicaoFinanceira.ContainsKey(order.Ativo))
+                exposicaoFinanceira[order.Ativo] += GetOrderValue(order);
+
+        return Ok(exposicaoFinanceira);
     }
 
     [HttpPost]
@@ -57,7 +64,7 @@ public class OrderAccumulatorController : ControllerBase
         {
             ValidateOrder(order);
 
-            var exposicaoFinanceiraAtual = GetExposicaoFinanceiraAtual(order.Ativo);
+            var exposicaoFinanceiraAtual = GetExposicaoFinanceiraAtualPorAtivo(order.Ativo);
             exposicaoFinanceiraAtual = ValidarNovaExposicaoFinanceira(order, exposicaoFinanceiraAtual);
             await SaveOrder(order);
 
@@ -122,7 +129,7 @@ public class OrderAccumulatorController : ControllerBase
         else return (-1) * order.Preco * order.Quantidade;
     }
 
-    private decimal GetExposicaoFinanceiraAtual(string ativo)
+    private decimal GetExposicaoFinanceiraAtualPorAtivo(string ativo)
     {
         decimal exposicaoFinanceiraAtual = 0;
         List<Order> orders = GetOrderList(ativo).Result;
@@ -132,11 +139,7 @@ public class OrderAccumulatorController : ControllerBase
         return exposicaoFinanceiraAtual;
     }
 
-    private async Task<List<Order>> GetOrderList(string ativo)
-    {
-        var orders = await _context.Orders.Where(o => o.Ativo == ativo).ToListAsync();
-        return orders;
-    }
+    private async Task<List<Order>> GetOrderList(string ativo) => await _context.Orders.Where(o => o.Ativo == ativo).ToListAsync();
 
     private async Task<Order> SaveOrder(Order order)
     {

@@ -38,7 +38,7 @@ export class OrderGeneratorComponent {
   expoVIIA4: number = 0;
 
   constructor(private service: OrderGeneratorService) {
-    this.carregarExposicoesFinanceiras();
+    this.getExposicaoFinanceira();
   }
 
   isFormValid(): boolean {
@@ -62,34 +62,6 @@ export class OrderGeneratorComponent {
     });
   }
 
-  getOrders() {
-    this.service.getOrders().subscribe({
-      next: (response) => console.log(response),
-      error: (error) => console.log(error),
-    });
-  }
-
-  carregarExposicoesFinanceiras() {
-    this.getExposicaoFinanceira('PETR4');
-    this.getExposicaoFinanceira('VALE3');
-    this.getExposicaoFinanceira('VIIA4');
-  }
-
-  getExposicaoFinanceira(ativo: string) {
-    this.service.getExposicaoFinanceira(ativo).subscribe({
-      next: (response) => {
-        this.atualizarExposicao(ativo, response);
-      },
-    });
-  }
-
-  resetar() {
-    this.resultado = undefined;
-    this.service
-      .resetar()
-      .subscribe({ complete: () => this.carregarExposicoesFinanceiras() });
-  }
-
   atualizarExposicao(ativo: string, exposicao_atual: number | undefined) {
     if (exposicao_atual == undefined) return;
 
@@ -100,5 +72,30 @@ export class OrderGeneratorComponent {
     } else if (ativo === 'VIIA4') {
       this.expoVIIA4 = exposicao_atual;
     }
+  }
+
+  getOrders() {
+    this.service.getOrders().subscribe({
+      next: (response) => console.log(response),
+      error: (error) => console.log(error),
+    });
+  }
+
+  resetar() {
+    this.resultado = undefined;
+    this.service
+      .resetar()
+      .subscribe({ complete: () => this.getExposicaoFinanceira() });
+  }
+
+  getExposicaoFinanceira() {
+    this.service.getExposicaoFinanceira().subscribe({
+      next: (response) => {
+        console.log(response);
+        this.expoPETR4 = response['PETR4'] ? response['PETR4'] : 0;
+        this.expoVALE3 = response['VALE3'] ? response['VALE3'] : 0;
+        this.expoVIIA4 = response['VIIA4'] ? response['VIIA4'] : 0;
+      },
+    });
   }
 }

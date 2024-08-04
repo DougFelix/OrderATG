@@ -12,10 +12,6 @@ export class OrderGeneratorService {
 
   constructor(private http: HttpClient) {}
 
-  enviar(order: Order): Observable<Result> {
-    return this.http.post<Result>(this.baseUrl, order);
-  }
-
   resetar(): Observable<any> {
     return this.http.delete(this.baseUrl);
   }
@@ -24,7 +20,11 @@ export class OrderGeneratorService {
     return this.http.get<Order>(this.baseUrl);
   }
 
-  getExposicaoFinanceira(ativo: string): Observable<number> {
-    return this.http.get<number>(this.baseUrl + `/${ativo}`);
+  enviar(order: Order): Observable<Result> {
+    return this.http.post<Result>(this.baseUrl, order);
+  }
+
+  getExposicaoFinanceira(): Observable<any> {
+    return this.http.get<any>(this.baseUrl + `/expofinanceira`);
   }
 }
