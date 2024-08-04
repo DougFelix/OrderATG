@@ -36,3 +36,7 @@
   display: flex;
   gap: 10px; /* Adiciona espaço entre os botões */
 }
+
+.is-invalid {
+  border-color: red !important;
+}

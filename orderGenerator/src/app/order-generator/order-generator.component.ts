@@ -91,7 +91,6 @@ export class OrderGeneratorComponent {
   getExposicaoFinanceira() {
     this.service.getExposicaoFinanceira().subscribe({
       next: (response) => {
-        console.log(response);
         this.expoPETR4 = response['PETR4'] ? response['PETR4'] : 0;
         this.expoVALE3 = response['VALE3'] ? response['VALE3'] : 0;
         this.expoVIIA4 = response['VIIA4'] ? response['VIIA4'] : 0;

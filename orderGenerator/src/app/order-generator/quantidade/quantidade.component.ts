@@ -7,7 +7,6 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './quantidade.component.html',
-  styleUrl: './quantidade.component.css',
 })
 export class QuantidadeComponent {
   @Input() quantidade: number | undefined;

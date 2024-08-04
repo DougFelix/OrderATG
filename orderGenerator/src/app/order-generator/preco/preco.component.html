@@ -2,17 +2,11 @@
   <label for="preco" class="col-sm-4 col-form-label fw-bold">Preço:</label>
   <div class="col-sm-8">
     <input
-      id="preco"
+      type="text"
+      id="inputDinheiro"
       name="preco"
-      type="number"
-      min="0.01"
-      max="999.99"
-      step="0.01"
-      oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
-      maxlength="6"
       placeholder="Informe o preço"
-      [(ngModel)]="preco"
-      (ngModelChange)="alterarPreco($event)"
+      (input)="onValueChange($event)"
       (blur)="onBlur()"
       class="form-control"
       [ngClass]="{ 'is-invalid': !precoValido }"
