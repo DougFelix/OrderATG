@@ -1,0 +1,33 @@
+<fieldset class="col">
+  <div class="row">
+    <legend class="col-form-label col-sm-4 pt-0 fw-bold">Lado:</legend>
+    <div class="col-sm-8">
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="lado"
+          id="ladoCompra"
+          value="C"
+          [(ngModel)]="ladoSelected"
+          (ngModelChange)="ladoSelecionadoChanged($event)"
+          [checked]="ladoSelected === 'C'"
+        />
+        <label class="form-check-label" for="ladoCompra"> Compra </label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="lado"
+          id="ladoVenda"
+          value="V"
+          [(ngModel)]="ladoSelected"
+          (ngModelChange)="ladoSelecionadoChanged($event)"
+          [checked]="ladoSelected === 'V'"
+        />
+        <label class="form-check-label" for="ladoVenda"> Venda </label>
+      </div>
+    </div>
+  </div>
+</fieldset>

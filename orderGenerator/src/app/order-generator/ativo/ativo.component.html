@@ -1,0 +1,46 @@
+<fieldset class="col">
+  <div class="row">
+    <legend class="col-form-label col-sm-4 pt-0 fw-bold">Ativo:</legend>
+    <div class="col-sm-8">
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="radioAtivos"
+          id="ativoPETR4"
+          value="PETR4"
+          [(ngModel)]="ativoSelected"
+          (ngModelChange)="ativoSelectedChanged($event)"
+          [checked]="ativoSelected === 'PETR4'"
+        />
+        <label class="form-check-label" for="ativoPETR4"> PETR4 </label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="radioAtivos"
+          id="ativoVALE3"
+          value="VALE3"
+          [(ngModel)]="ativoSelected"
+          (ngModelChange)="ativoSelectedChanged($event)"
+          [checked]="ativoSelected === 'VALE3'"
+        />
+        <label class="form-check-label" for="ativoVALE3"> VALE3 </label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="radioAtivos"
+          id="ativoVIIA4"
+          value="VIIA4"
+          [(ngModel)]="ativoSelected"
+          (ngModelChange)="ativoSelectedChanged($event)"
+          [checked]="ativoSelected === 'VIIA4'"
+        />
+        <label class="form-check-label" for="ativoVIIA4"> VIIA4 </label>
+      </div>
+    </div>
+  </div>
+</fieldset>

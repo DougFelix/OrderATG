@@ -25,3 +25,14 @@
 .space {
   margin-bottom: 10px;
 }
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px; /* Adiciona espaço entre os botões */
+}

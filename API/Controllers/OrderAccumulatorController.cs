@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using API.Data;
 using API.Entities;
@@ -29,10 +32,24 @@ public class OrderAccumulatorController : ControllerBase
     public async void Reset()
     {
         await _context.Orders.ExecuteDeleteAsync();
+        await _context.SaveChangesAsync();
+    }
+
+    [HttpGet]
+    public ActionResult<List<Order>> GetList()
+    {
+        var orders = _context.Orders.ToList();
+        return orders;
+    }
+
+    [HttpGet("{ativo}")]
+    public ActionResult<decimal> GetExposicaoFinanceira([FromRoute] string ativo)
+    {
+        return Ok(GetExposicaoFinanceiraAtual(ativo));
     }
 
     [HttpPost]
-    public IActionResult Post([FromBody] Order order)
+    public async Task<IActionResult> Post([FromBody] Order order)
     {
         var response = new Response();
 
@@ -42,11 +59,23 @@ public class OrderAccumulatorController : ControllerBase
 
             var exposicaoFinanceiraAtual = GetExposicaoFinanceiraAtual(order.Ativo);
             exposicaoFinanceiraAtual = ValidarNovaExposicaoFinanceira(order, exposicaoFinanceiraAtual);
-            SaveOrder(order);
+            await SaveOrder(order);
 
             response.Sucesso = true;
             response.Exposicao_atual = exposicaoFinanceiraAtual;
             return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            response.Sucesso = false;
+            response.Msg_erro = "Erro aconteceu porque " + ex.Message;
+            return StatusCode(StatusCodes.Status400BadRequest, response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            response.Sucesso = false;
+            response.Msg_erro = "Erro aconteceu porque " + ex.Message;
+            return StatusCode(StatusCodes.Status400BadRequest, response);
         }
         catch (Exception ex)
         {
@@ -61,13 +90,16 @@ public class OrderAccumulatorController : ControllerBase
         if (order?.Ativo == null || order.Ativo == string.Empty || order.Lado == null || order.Lado == string.Empty)
             throw new ArgumentException($"não é possível realizar a operação com dados incompletos.");
         if (!_ativos.Contains(order.Ativo))
-            throw new ArgumentException($"o ativo {order.Ativo} é inválido. Deve ser 'PETR4' , 'VALE3' ou 'VIIA4'.");
+            throw new ArgumentException($"o ativo informado ({order.Ativo}) é inválido. Deve ser 'PETR4' , 'VALE3' ou 'VIIA4'.");
         if (!_lados.ContainsValue(order.Lado))
-            throw new ArgumentException($"o lado {order.Lado} é inválido. Deve ser 'C' ou 'V'.");
+            throw new ArgumentException($"o lado informado ({order.Lado}) é inválido. Deve ser 'C' ou 'V'.");
         if (order.Quantidade <= 0 || order.Quantidade >= 100000)
-            throw new ArgumentException($"a quantidade {order.Quantidade} deve ser valor positivo inteiro menor que 100.000.");
+            throw new ArgumentException($"a quantidade informada ({order.Quantidade}) deve ser valor positivo inteiro menor que 100.000.");
         if (order.Preco <= 0 || order.Preco >= 1000 || order.Preco % 0.01m != 0)
-            throw new ArgumentException($"o preço {order.Preco} deve ser valor positivo decimal múltiplo de 0.01 e menor que 1.000,00.");
+        {
+            var precoFormatado = order.Preco.ToString("C", new CultureInfo("pt-BR"));
+            throw new ArgumentException($"o preço informado ({precoFormatado}) deve ser um valor positivo decimal múltiplo de 0.01 e menor que R$1.000,00.");
+        }
     }
 
     private decimal ValidarNovaExposicaoFinanceira(Order order, decimal exposicaoFinanceiraAtual)
@@ -75,7 +107,10 @@ public class OrderAccumulatorController : ControllerBase
         var novoValor = GetOrderValue(order);
         exposicaoFinanceiraAtual += novoValor;
         if (exposicaoFinanceiraAtual > Limit)
-            throw new InvalidOperationException($"a order informada ultrapassaria R${novoValor} do limite de R$1.000.000,00 para a exposição financeira.");
+        {
+            var valorExtraFormatado = (exposicaoFinanceiraAtual - Limit).ToString("C", new CultureInfo("pt-BR"));
+            throw new InvalidOperationException($"a order informada ultrapassaria {valorExtraFormatado} do limite de R$1.000.000,00 para a exposição financeira.");
+        }
 
         return exposicaoFinanceiraAtual;
     }
@@ -103,9 +138,11 @@ public class OrderAccumulatorController : ControllerBase
         return orders;
     }
 
-    private void SaveOrder(Order order)
+    private async Task<Order> SaveOrder(Order order)
     {
         order.RecOn = DateTime.Now;
         _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+        return order;
     }
 }
